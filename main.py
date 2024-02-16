@@ -33,37 +33,37 @@ with tabs_2:
     st.subheader('Nettoyage des données')
     
     ### Etape 1 - Champs sans nom : 
-    st.write('Etape 1 : Vérification du nom des champs :')
-    colonnes_nom = nettoyage.colonnes_unnamed(donnees)
-    message_nom = nettoyage.affichage_unnamed(colonnes_nom)
+    with st.expander('Etape 1 : Vérification du nom des champs :') :
+        colonnes_nom = nettoyage.colonnes_unnamed(donnees)
+        message_nom = nettoyage.affichage_unnamed(colonnes_nom)
     
-    if len(colonnes_nom) == 0 :
-        st.write('Vos colonnes comportent toutes des noms de variables !')
-    else:
-        st.write(message_nom)
-        st.write(donnees[colonnes_nom].head())
+        if len(colonnes_nom) == 0 :
+            st.write('Vos colonnes comportent toutes des noms de variables !')
+        else:
+            st.write(message_nom)
+            st.write(donnees[colonnes_nom].head())
             
-        st.write('Souhaitez-vous ?')
-        supprimer_colonne = st.checkbox("Supprimer la(les) colonne(s) sans nom ?")
-        renommer_colonne = st.checkbox("Renommer la(les) colonne(s) sans nom ?")
+            st.write('Souhaitez-vous ?')
+            supprimer_colonne = st.checkbox("Supprimer la(les) colonne(s) sans nom ?")
+            renommer_colonne = st.checkbox("Renommer la(les) colonne(s) sans nom ?")
             
-        if supprimer_colonne :
-            donnees = nettoyage.supp_colonnes(donnees,colonnes_nom)
-            st.write("Vous venez de supprimer la(les) colonne(s). Voici votre nouvelle base de données : ")
-            st.write(donnees.head())
-        if renommer_colonne : 
-            for i in range(len(colonnes_nom)) :
-                colonne = colonnes_nom[i]
-                nouveau_nom = st.text_input("Entrez le nouveau nom pour la colonne "+colonne, "")
-                donnees = nettoyage.renommer_colonnes(donnees,colonne,nouveau_nom)
-                st.write("Vous venez de renommer la colonne "+ colonne + "par :" + nouveau_nom + ". Voici votre nouvelle base de données :")
+            if supprimer_colonne :
+                donnees = nettoyage.supp_colonnes(donnees,colonnes_nom)
+                st.write("Vous venez de supprimer la(les) colonne(s). Voici votre nouvelle base de données : ")
                 st.write(donnees.head())
+            if renommer_colonne : 
+                for i in range(len(colonnes_nom)) :
+                    colonne = colonnes_nom[i]
+                    nouveau_nom = st.text_input("Entrez le nouveau nom pour la colonne "+colonne, "")
+                    donnees = nettoyage.renommer_colonnes(donnees,colonne,nouveau_nom)
+                    st.write("Vous venez de renommer la colonne "+ colonne + "par :" + nouveau_nom + ". Voici votre nouvelle base de données :")
+                    st.write(donnees.head())
     
     
     ### Etape 2 - Identification des valeurs manquantes : 
-    st.write('Etape 2 : Identification et traitement des valeurs manquantes :')
-    message_valeurs = nettoyage.identification_nan(donnees)
-    st.write(message_valeurs)
+    with st.expander('Etape 2 : Identification et traitement des valeurs manquantes :') :
+        message_valeurs = nettoyage.identification_nan(donnees)
+        st.write(message_valeurs)
 
     
 #### Page de l'onglet 1
