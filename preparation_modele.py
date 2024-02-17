@@ -1,43 +1,44 @@
 """
-IMPORTS
+IMPORTS NÉCESSAIRES À CE MODULE :
 """
 
 # Pour les correlations
 import numpy as np
+import pandas as pd
+
+# Pour les figures
 import seaborn as sns
 import matplotlib.pyplot as plt
-
-# Pour le split
-from sklearn.model_selection import train_test_split
 
 # Pour intéragir avec streamlit
 import streamlit as st
 
-"""
-SELECTION DE COLONNES
-"""
-# Fonction qui retourne une liste avec le nom des colonnes sélectionnées
-# Inputs streamlit : nb de colonnes et noms des colonnes
-
-def select_colonnes(df,nb_col): # dataframe et nombre de colonnes que l'on veut sélectionner
-    list_col = list()
-
-    # si "nb_col" est égal au nombre total de colonnes
-    if nb_col == df.shape[1]:
-        list_col = df.columns.tolist()
-
-    else:
-        # Création de "nb_col" champs d'input pour entrer les "nb_col" colonnes :
-        for i in range(nb_col):
-            col = st.text_input(f"Colonne {i+1} : ")
-            list_col.append(col)
-
-    return list_col
-
-
 
 """
-CORRELATIONS
+a. FONCTIONS POUR LA SELECTION DE COLONNES D'UN DATAFRAME
+"""
+
+def select_colonnes(df, key='default'): # dataframe et nombre de colonnes que l'on veut sélectionner
+    
+    liste_colonnes = df.columns.tolist()
+
+    # Sélection des 2 premières colonnes par défaut :
+    selection_par_defaut = df.columns[:2].tolist()
+
+    # Afficher le multiselect à l'utilisateur
+    colonnes_selectionnees = st.multiselect('Sélectionnez deux colonnes ou plus :', liste_colonnes, default=selection_par_defaut, key=key)
+
+    # Afficher les options sélectionnées
+    st.write('Options sélectionnées :', colonnes_selectionnees)
+
+    # st.write('Options sélectionnées :', st.multiselect('Sélectionnez deux colonnes ou plus :', liste_colonnes))
+    
+    return colonnes_selectionnees
+
+
+
+"""
+b. FONCTIONS DE CORRELATIONS (CALCUL ET AFFICHAGE)
 """
 
 # HEATMAP CORRELATIONS : retourne la heatmap avec l'ensemble des corrélations
@@ -58,59 +59,80 @@ def map_corr(df):
     return fig
 
 
-# PAIRPLOT
+# PAIRPLOT : VISUALISATION DES ÉVENTUELLES COLINÉARITÉS ENTRE FEATURES
 def pairplot(df, list_col):
     fig = sns.pairplot(df[list_col])
     return fig
 
-def target_correlations(df,target):
-    fig, ax = plt.subplots(figsize=(2, 5))
-    cmap = sns.diverging_palette(15, 160, n=11, s=100)
-    
-    target_corr_list = df.corr()[[target]].sort_values(by=target, ascending=False)
 
-    sns.heatmap(target_corr_list,
+# CORRELATIONS AVEC LA TARGET
+
+# calcul des corrélations avec la target (retourne une serie, entrée de la fonction suivante) :
+def calc_target_correlations(df,target):
+
+    target_corr_dict = dict()
+    for column in df:
+        correlation = target.corr(df[column])
+        target_corr_dict[column] = correlation
+
+    target_corr_df = pd.DataFrame({'Correlation': list(target_corr_dict.values())}, index=target_corr_dict.keys())
+    target_corr_df = target_corr_df.sort_values(by='Correlation', ascending=False)
+
+    return target_corr_df
+
+# création de la figure (heatmap) :
+def fig_target_correlations(target_corr_df):
+    
+    fig, ax = plt.subplots(figsize=(1,3))
+
+    cmap = sns.diverging_palette(15, 160, n=11, s=100)
+
+    plt.figure()
+    sns.heatmap(target_corr_df,
                 annot=True,
+                annot_kws={"size": 7},
                 cmap=cmap,
                 center=0,
                 vmin=-1,
                 vmax=1,
-                ax=ax)
+                ax=ax,
+                cbar=False)
+    plt.yticks(fontsize=3)
+
     return fig
 
 
 """
-Target et Features
+c. TARGET :     /!\ À COMPLÉTER /!\ 
 """
-def features(df):
-    X = df[:-1]
-    y = df[-1]
-    return X, y
 
-# ou
-    
-def features(df, list_col):
+# Sélection de la target
+def target_select(df,TARGET):
+    y = df[TARGET]
+    return y
+
+# Détection du type de target (--> type de ML)
+    # ...
+
+
+"""
+d. FEATURES
+"""
+
+# Sélection de toutes les colonnes (sauf la target)
+def features_select_all(df,target):   # où target est une serie
+    FEATURES = [col for col in df.columns if col!=target.name]
+    X = df[FEATURES]
+    return X
+
+# Sélection manuelle, à partir d'une liste de noms de colonnes    
+def features_manual_select(df, list_col):
     FEATURES = list_col #liste des colonnes sélectionnées du type : [col1,col2,col3]
     X = df[FEATURES]
-    y = df[-1]
-    return X, y
+    return X
 
-# ou
-
-def features(df, target):   # où target = string du type "target"
-    X = [x for x in df.columns if x!=target]
-    y = df[target]
-    return X, y
-
-
-"""
-Split
-"""
-def split(X,y,pourcentage):
-    X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size = pourcentage,
-    random_state = 42
-    )
-    return X_train, X_test, y_train, y_test
+# Sélection des colonnes (sauf la target) dont la corrélation avec la target est au-dessus d'un seuil
+def features_auto_select(df, corr_seuil, target):   # où corr_seuil est un seuil de coeff de corrélation avec la target
+    FEATURES = [col for col in df.columns if (abs(df[col].corr(target)) >= float(corr_seuil) and col!=target.name)]
+    X = df[FEATURES]
+    return X
