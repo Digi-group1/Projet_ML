@@ -1,8 +1,6 @@
-import pandas as pd
-import numpy as np
-
-# Pour la récupération d'entrées utilisateur sur streamlit + l'affichage (titres, figures, texte) :
-import streamlit as st
+"""
+IMPORTS NÉCESSAIRES À CE MODULE :
+"""
 
 # Pour le split
 from sklearn.model_selection import train_test_split
@@ -39,22 +37,6 @@ def ridge(alpha,X_train,y_train,X_test):
     model.fit(X_train, y_train)     # Ajustement du modèle aux données d'entraînement
     y_pred = model.predict(X_test)  # Prédiction
     return y_pred
-
-    # df_resultat_ridge = []
-    # n_alphas = 1_000
-    # alphas = np.arange(0,n_alphas,0.5)
-    # for alpha in alphas:
-    #     clf = Ridge(alpha=alpha).fit(df[FEATURES],df[TARGET])
-    #     y_hat = clf.predict(df[FEATURES])
-    #     mse = round(mean_squared_error(df[TARGET].values,y_hat),4)
-    #     res = pd.DataFrame({"variable":FEATURES,"coefficient":clf.coef_})
-    #     res['alpha'] = alpha
-    #     res['mse'] = mse
-        
-    #     df_resultat_ridge.append(res)
-
-    # df_resultat_ridge = pd.concat(df_resultat_ridge)
-
 
 def lasso(alpha,X_train,y_train,X_test):
     model = Lasso(alpha=alpha)      # Instanciation du modèle
