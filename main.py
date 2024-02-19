@@ -52,7 +52,7 @@ with tabs_3:
 
 #### Page de l'onglet 4 -- Modèle
 with tabs_4:
-    R2, MSE = tab_4.etapes_regression(features,target,type_model)
+   model = tab_4.etapes_model(features,target,type_model)
 
 
 #### Page de l'onglet 5 -- Prédictions
