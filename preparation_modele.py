@@ -18,12 +18,9 @@ import streamlit as st
 a. FONCTIONS POUR LA SELECTION DE COLONNES D'UN DATAFRAME
 """
 
-def select_colonnes(df, key='default'): # dataframe et nombre de colonnes que l'on veut sélectionner
+def select_colonnes(df, selection_par_defaut, key='default'): # dataframe et nombre de colonnes que l'on veut sélectionner
     
     liste_colonnes = df.columns.tolist()
-
-    # Sélection des 2 premières colonnes par défaut :
-    selection_par_defaut = df.columns[:2].tolist()
 
     # Afficher le multiselect à l'utilisateur
     colonnes_selectionnees = st.multiselect('Sélectionnez deux colonnes ou plus :', liste_colonnes, default=selection_par_defaut, key=key)
@@ -107,12 +104,50 @@ c. TARGET :     /!\ À COMPLÉTER /!\
 """
 
 # Sélection de la target
-def target_select(df,TARGET):
-    y = df[TARGET]
-    return y
 
-# Détection du type de target (--> type de ML)
-    # ...
+def detect_target(data):
+    # nom_target = 'target' #ou = re.compile(r'\b\w*target\w*\b', re.IGNORECASE) pour généraliser -> à tester
+    nom_target = 'target'
+
+    if nom_target in data.columns:
+        return nom_target
+
+    else:
+        # nom de la dernière colonne proposé par défaut à l'utilisateur
+        col = data.columns[-1]
+        target_defaut = data[col]
+        choix_col = st.text_input("Entrez une chaîne de caractères", target_defaut.name)
+        return choix_col
+
+
+def type_target(target):
+        # test_target = isinstance(target, (int, float))
+        test_target = pd.api.types.is_numeric_dtype(target)
+        if test_target == True:
+            st.write("La target détectée est de type numérique.")
+            type_target = "num"
+            type_model = "regression"
+            return type_target, type_model
+        else:
+            st.write("La target détectée est de type objet/texte.")
+            type_model = "classification"
+            type_target = "texte"
+            return type_target, type_model
+    
+
+
+#Encodage de la target (cas d'une target non numérique)
+def encodage(data, colonne: str, new_col: str): # prend le nom de la colonne à encoder et celui de la nvle colonne
+    i = 0
+    labels = {}
+    for _, val in enumerate(data[colonne].unique()):
+        labels.update({val : i})
+        i +=1
+        data[new_col] = data[colonne].map(labels)
+    st.write("La colonne", colonne, "a bien été encodée. Voici le résultat de", new_col, ": ")
+    new_col_res = data[new_col].value_counts()
+    col_encod = data[new_col]
+    return col_encod, new_col_res
 
 
 """
