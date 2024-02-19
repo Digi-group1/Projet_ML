@@ -7,6 +7,7 @@ import streamlit as st
 
 # Module contenant les fonctions appelées pour la préparation du jeu de données avant entraînement du modèle
 import preparation_modele as prep
+import standardisation
 
 
 
@@ -68,8 +69,23 @@ def etapes_preparation_modele(donnees):
     """
     st.subheader('**Standardisation des données :**')
     with st.expander('**Standardisation des données :**'):
-    # à compléter
-        pass
+    # On vérifie si le modèle est standardisé ou non
+        colonnes_sans_target = [colonne for colonne in donnees.columns if colonne != target_name]
+        df_sans_target = donnees[colonnes_sans_target]
+        if standardisation.est_standardise(df_sans_target) == False :
+            st.write("Votre base de données n'est pas standardisée")
+            choix_standardisation = st.radio("Souhaitez-vous standardiser votre base de données ?", ("Oui", "Non"))
+            if choix_standardisation == "Non" :
+                donnees = donnees
+                st.write("Vous conservez votre base de données, dont voici les premières lignes : ")
+                st.write(donnees.head())
+            elif choix_standardisation == "Oui" :
+                donnees = standardisation.standardiser_dataframe(donnees)
+                st.write("Voici les premières lignes de votre base de données standardisée :")
+                st.write(donnees.head())
+        else : 
+            st.write("Votre base de données est standardisée (Toutes les moyennes sont proches de zéro)") 
+        
 
 
     #------------------------------------------------------------------------
@@ -108,7 +124,7 @@ def etapes_preparation_modele(donnees):
     st.subheader('**Sélection des features pour le modèle :**')
 
     # Sélection des colonnes (Sélection des 2 premières colonnes par défaut) :
-    selection_par_defaut = donnees.columns[:2].tolist()
+    selection_par_defaut = donnees[col_num].columns[:2].tolist()
     col_selectionnees = prep.select_colonnes(donnees[col_num],selection_par_defaut)
     
     with st.expander('**Visualisation des corrélations entre variables :**', expanded=False):
