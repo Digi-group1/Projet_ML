@@ -17,21 +17,54 @@ FONCTION "ETAPES_PREPARATION_MODELE" :
     > sorties : la serie "target" + le dataframe "features" (entrées du modèle)
 """
 
+
 def etapes_preparation_modele(donnees):    
 
     """
-    1. ENCODAGE DES DONNÉES
+    1. DÉTECTION DE LA TARGET ET DE SON TYPE
     """
-    st.subheader('**Encodage des données :**')
-    with st.expander('**Encodage des données :**'):
-    # à compléter
-        pass
 
+    st.subheader('**Détection de la target :**')
+    with st.expander('**Sélection de la target:**', expanded=False):
+        # Sélection de la target :
+        target_name = prep.detect_target(donnees)
+        st.write("Votre choix : ",target_name)
+
+        type_target,type_model = prep.type_target(donnees[target_name])
+        st.write(type_model)
+        
+
+    """
+   2. ENCODAGE DES DONNÉES
+    """
+
+    st.subheader('**Encodage des données :**')
+
+    with st.expander('**Encodage de la target :**'):
+
+        # Sélection des colonnes (Sélection de la dernière colonne par défaut) :
+        # selection_par_defaut = donnees.columns[-1]
+        # col_encod_select = prep.select_colonnes(donnees,selection_par_defaut, key="1")
+
+        # for col in col_encod_select:
+        #     new_col_name =  "new_" + col
+        #     col_encod, new_col_res = prep.encodage(donnees,col, new_col_name)
+        #     st.write(new_col_res)
+
+        if type_target == "texte":
+            nom_target_encod = "target_encod"
+            target, target_encod_res = prep.encodage(donnees,target_name, "target_encod")
+            st.write(target_encod_res)
+        else:
+            target = donnees[target_name]
+            st.write("Pas d'encodage nécessaire")
+
+        st.write(target.head())
 
     #------------------------------------------------------------------------
 
     """
-    2. STANDARDISATION DES DONNÉES
+    3. STANDARDISATION DES DONNÉES
     """
     st.subheader('**Standardisation des données :**')
     with st.expander('**Standardisation des données :**'):
@@ -42,51 +75,46 @@ def etapes_preparation_modele(donnees):
     #------------------------------------------------------------------------
 
     """
-    3. VISUALISATION DES CORRELATIONS
+    4. VISUALISATION DES CORRELATIONS
     """
 
     st.subheader('**Target :**')
+
+    col_num = donnees.select_dtypes(include=["int","float"]).columns.tolist()
+
     with st.expander('**Carte des corrélations du jeu de données :**', expanded=False):
 
         # Affichage de la heatmap de correlations :
         st.write('Corrélations entre les variables :')
-        fig_corr = prep.map_corr(donnees)
+        fig_corr = prep.map_corr(donnees[col_num])
+        # fig_corr = prep.map_corr(donnees)
         st.pyplot(fig_corr, clear_figure=True)
 
-    with st.expander('**Sélection de la target:**', expanded=False):
-        # Sélection de la target :
-        nom_par_defaut="target"
-        target = st.text_input("Entrez une chaîne de caractères", nom_par_defaut)
-        target = prep.target_select(donnees,target)
-        st.write("Votre choix : ",target.name)
+    with st.expander('*Correlations avec la target:**', expanded=False):
 
         # Target correlations :
         st.write('Corrélations entre la target et les autres variables :')
-        target_corr = prep.calc_target_correlations(donnees,target)
+        target_corr = prep.calc_target_correlations(donnees[col_num],target)
         fig_target_corr = prep.fig_target_correlations(target_corr)
         st.pyplot(fig_target_corr, clear_figure=True, use_container_width=False)
-
-    with st.expander('**Détection du type de target:**', expanded=False):
-        # à compléter
-        pass
-
 
 
     #------------------------------------------------------------------------
 
     """
-    4. SÉLECTION DES FEATURES
+    5. SÉLECTION DES FEATURES
     """
 
     st.subheader('**Sélection des features pour le modèle :**')
 
-    # Sélection des colonnes
-    col_selectionnees = prep.select_colonnes(donnees)
+    # Sélection des colonnes (Sélection des 2 premières colonnes par défaut) :
+    selection_par_defaut = donnees.columns[:2].tolist()
+    col_selectionnees = prep.select_colonnes(donnees[col_num],selection_par_defaut)
     
     with st.expander('**Visualisation des corrélations entre variables :**', expanded=False):
         # Pair plot :
         st.write("Pair plot des variables : vérification qu'il n'y a pas de colinéarités")
-        fig_pairplot = prep.pairplot(donnees, col_selectionnees)
+        fig_pairplot = prep.pairplot(donnees[col_num], col_selectionnees)
         st.pyplot(fig_pairplot)   
 
     #with st.expander('**Mode de sélection**', expanded=True):
@@ -122,7 +150,7 @@ def etapes_preparation_modele(donnees):
     #------------------------------------------------------------------------
 
     """
-    5. RÉÉQUILIBRAGE DES DONNÉES
+    6. RÉÉQUILIBRAGE DES DONNÉES
     """
 
     st.subheader('**Rééquilibrage des données :**')
@@ -143,4 +171,4 @@ def etapes_preparation_modele(donnees):
 
 
     # sorties de fonction tab_3 (qui sont les arguemnts d'entrée de la fonction tab_4)
-    return features, target
+    return features, target, type_model
