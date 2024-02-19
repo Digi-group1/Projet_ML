@@ -7,8 +7,18 @@ from sklearn.model_selection import train_test_split
 
 # Pour les fonctions qui appellent les modèles de regression
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.model_selection import KFold
+
+# Pour le calcul des métrics (RMSE)
+import numpy as np
+import pandas as pd
+
+# Pour les figures
+import matplotlib.pyplot as plt
+
+# Pour intéragir avec streamlit
+import streamlit as st
 
 
 """
@@ -24,7 +34,7 @@ def split(X,y,test_size):
 
 
 """
-Regression linéaire
+Modèles de regression linéaire
 """
 def linear(X_train,y_train,X_test):
     model = LinearRegression()      # Instanciation du modèle
@@ -51,8 +61,10 @@ Metrics
 # Fonction qui retourne deux métrics : R² et erreur quad. moy.
 def metrics(y_test,y_pred):
     R2 = round(r2_score(y_test,y_pred),4)
-    MSE = round(mean_squared_error(y_test,y_pred),4)
-    return R2, MSE
+    MSE = mean_squared_error(y_test,y_pred)
+    RMSE = round(np.sqrt(MSE),2)
+    MAE = round(mean_absolute_error(y_test,y_pred),2)
+    return R2, RMSE, MAE
 
 
 """
@@ -65,9 +77,13 @@ def validation_croisee(model,n_splits,features,target):
     
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
 
-    # Liste pour stocker les scores de validation croisée
-    cv_scores = list()
+    # Dataframe pour stocker les métrics des diffénrents "trains" + tailles des échantillons "train" et "test" :
+    # cv_metrics = pd.DataFrame(columns=['R2', 'RMSE', 'MAE'])
+    cv_metrics = pd.DataFrame(columns=['R2', 'RMSE', 'MAE','taille éch. train', 'taille éch. test'])
 
+    # Liste pour remplir le dataframe cv_metrics
+    liste_metrics = list()
+    
     # Boucle sur les "n_splits" plis de la validation croisée :
     for train_index, test_index in kf.split(features):
         X_train, X_test = features.iloc[train_index], features.iloc[test_index]
@@ -76,10 +92,26 @@ def validation_croisee(model,n_splits,features,target):
         # Entraînement du modèle sur les données d'entraînement :
         model.fit(X_train, y_train)
 
-        # Évaluation du modèle sur les données de test :
-        score = model.score(X_test, y_test)
-        cv_scores.append(score)
-    # score moyen
-    cv_scores_moy = sum(cv_scores) / n_splits
+        # Prédiction du modèle sur X_test :
+        y_pred = model.predict(X_test)
 
-    return cv_scores, cv_scores_moy
+        # Évaluation du modèle sur les données de test :
+        R2, RMSE, MAE = metrics(y_test,y_pred)
+
+        # ligne_metrics = {'R2': R2, 'RMSE': RMSE, 'MAE': MAE}
+        ligne_metrics = {'R2': R2, 'RMSE': RMSE, 'MAE': MAE, 'train_sample_size': X_train.shape[0], 'test_sample_size': X_test.shape[0]}
+        liste_metrics.append(ligne_metrics)
+
+        # Plots :
+        fig, ax = plt.subplots()
+        ax.scatter(y_test,y_pred)
+        max_value_y = y_test.max()
+        plt.plot(np.arange(0,max_value_y))
+        ax.set_xlabel('y_pred')
+        ax.set_ylabel('y_test')
+        st.pyplot(fig)
+
+    cv_metrics = pd.DataFrame(liste_metrics)
+
+    # return cv_R2, cv_RMSE, cv_MAE
+    return cv_metrics
