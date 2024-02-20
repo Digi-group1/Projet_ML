@@ -4,10 +4,13 @@ IMPORTS NÉCESSAIRES À CE MODULE :
 
 # Pour la récupération d'entrées utilisateur sur streamlit + l'affichage (titres, pages déroulantes, figures, texte) :
 import streamlit as st
+from imblearn.over_sampling import RandomOverSampler
+from imblearn.over_sampling import SMOTE
 
 # Module contenant les fonctions appelées pour la préparation du jeu de données avant entraînement du modèle
 import preparation_modele as prep
 import standardisation
+from data_management import encodage as encodage_var
 
 
 
@@ -62,6 +65,10 @@ def etapes_preparation_modele(donnees):
 
         st.write(target.head())
 
+
+    with st.expander("**Encodage d'une autre colonne :**") :
+        data = encodage_var.encodage_colonne(donnees,target_name)
+    
     #------------------------------------------------------------------------
 
     """
@@ -170,9 +177,39 @@ def etapes_preparation_modele(donnees):
     """
 
     st.subheader('**Rééquilibrage des données :**')
-    with st.expander('**Rééquilibrage :**'):
-    # à compléter
-        pass
+    with st.expander('**Rééquilibrage :**') :
+        if type_target == "texte":
+            st.write("Votre target est catégorielle, voici sa distribution : ")
+            st.write(target.value_counts())
+            choix_reequil = st.radio("Souhaitez-vous rééquilibrer votre target ?", ("Oui", "Non"))
+            if choix_reequil == "Non" :
+                st.write("Vous avez décidé de ne pas rééquilibrer votre variable")
+            elif choix_reequil == "Oui" :
+                choix_eq = st.radio("Quel rééquilibrage souhaitez-vous appliquer ?",("Un suréchantillonage SMOTE","Un suréchantillonage ROS","Une attribution de poids de classes CLASS_WEIGHT"))
+                if choix_eq == "Un suréchantillonage SMOTE" :
+                    sm = SMOTE(random_state=42)
+                    features_res, target_res = sm.fit_resample(features, target)
+                    features = features_res
+                    target = target_res
+                    st.write("Votre base de données a été rééquilibrée ! ")
+                    st.write("Voici la distribution de votre nouvelle target :")
+                    st.write(target.value_counts())
+                elif choix_eq == "Un suréchantillonage ROS" :
+                    ros = RandomOverSampler(random_state=42)
+                    features_res_2, target_res_2 = ros.fit_resample(features, target)   
+                    features = features_res_2
+                    target = target_res_2
+                    st.write("Votre base de données a été rééquilibrée ! ")
+                    st.write("Voici la distribution de votre nouvelle target :")
+                    st.write(target.value_counts())
+                elif choix_eq == "Une attribution de poids de classes CLASS_WEIGHT" :
+                    st.write("🚧 Fonctionnalité en cours de déploiement et sera prévue à la prochaine mise à jour 🚧")
+   
+                
+                
+
+        else : 
+            st.write("Votre target est numérique, pas besoin de rééquilibrage.")
 
     
     #------------------------------------------------------------------------
