@@ -28,7 +28,7 @@ def entrainer_modele(select_model: DecisionTreeClassifier, X_train, y_train, X_t
         print(clf.__dict__)
         return y_pred
     except Exception as e:
-        st.write(str(e)," : Il y a eu une erreur")
+        st.write(str(e)," Il y a eu une erreur")
 
 def clf_report(y_pred, y_test):
     cr = classification_report(y_test, y_pred)
@@ -41,9 +41,9 @@ def val_croisee_clf(select_model: DecisionTreeClassifier,X, y, n_splits:int=4, *
         clf = select_model.set_params(**params)
         score_clf = cross_val_score(clf, X, y, cv=skf, scoring='accuracy') 
         # à tester avec 1 autre metrics : 'f1', 'f1-weighted', etc. ?
-        return score_clf
+        return score_clf, clf
     except Exception as e:
-        st.write(str(e),": Il y a eu une erreur dans la validation croisée.")
+        st.write(str(e)," Il y a eu une erreur dans la validation croisée.")
 
 # X_train, X_test, y_train, y_test = regression.split(X, y, 0.25)
 
@@ -101,7 +101,8 @@ def etapes_clf(features,target):
             model = DecisionTreeClassifier(random_state=rs, class_weight=cls_weight)
 
         # data_pred = entrainer_modele(select_model, X_train, y_train, X_test)
-        report = val_croisee_clf(select_model, features, target, n_splits)
+        # report = val_croisee_clf(model, features, target, n_splits)
+        report, model = val_croisee_clf(model, features, target, n_splits)
         
         # Affichage des scores de validation croisée
         st.write("Rapport de validation croisée sur les", str(n_splits),"lots :")

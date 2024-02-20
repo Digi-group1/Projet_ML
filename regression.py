@@ -55,6 +55,18 @@ def lasso(alpha,X_train,y_train,X_test):
     return y_pred
 
 
+def ridge_instant(alpha, max_iter, tol):
+    model = Ridge(alpha=alpha, max_iter=max_iter, tol=tol)
+    return model
+
+def lasso_instant(alpha, max_iter, tol):
+    model = Lasso(alpha=alpha, max_iter=max_iter, tol=tol)
+    return model
+
+def linear_instant():
+    model = LinearRegression()
+    return model
+
 """
 Metrics
 """
@@ -66,9 +78,32 @@ def metrics(y_test,y_pred):
     MAE = round(mean_absolute_error(y_test,y_pred),2)
     return R2, RMSE, MAE
 
+def metrics_moy(cv_metrics,n_splits):
+    # cv_R2_moy = round((sum(cv_metrics['R2']) / n_splits),4)
+    # cv_RMSE_moy = round((sum(cv_metrics['RMSE']) / n_splits),2)
+    # cv_MAE_moy = round((sum(cv_metrics['MAE']) / n_splits),2)
+    cv_R2_moy = (sum(cv_metrics['R2']) / n_splits)
+    cv_RMSE_moy = (sum(cv_metrics['RMSE']) / n_splits)
+    cv_MAE_moy = (sum(cv_metrics['MAE']) / n_splits)
+    return cv_R2_moy, cv_RMSE_moy, cv_MAE_moy
 
 """
-# Validation croisée
+Plot y_pred y_test
+"""
+
+def plot_test_pred(y_pred,y_test):
+    fig, ax = plt.subplots()
+    ax.scatter(y_test,y_pred)
+    max_value_y = y_pred.max()
+    plt.plot(np.arange(0,max_value_y))
+    ax.set_xlabel('y_test')
+    ax.set_ylabel('y_pred')
+    return fig
+
+
+
+"""
+Validation croisée
 """
 # Fonction qui lance une validation croisée pour un modèle donné en input, retourne les scores et le score moyen
 def validation_croisee(model,n_splits,features,target):
@@ -81,8 +116,9 @@ def validation_croisee(model,n_splits,features,target):
     # cv_metrics = pd.DataFrame(columns=['R2', 'RMSE', 'MAE'])
     cv_metrics = pd.DataFrame(columns=['R2', 'RMSE', 'MAE','taille éch. train', 'taille éch. test'])
 
-    # Liste pour remplir le dataframe cv_metrics
+    # Listes pour remplir le dataframe cv_metrics et pour enregistrer toutes les figures
     liste_metrics = list()
+    liste_fig = list()
     
     # Boucle sur les "n_splits" plis de la validation croisée :
     for train_index, test_index in kf.split(features):
@@ -103,15 +139,11 @@ def validation_croisee(model,n_splits,features,target):
         liste_metrics.append(ligne_metrics)
 
         # Plots :
-        fig, ax = plt.subplots()
-        ax.scatter(y_test,y_pred)
-        max_value_y = y_test.max()
-        plt.plot(np.arange(0,max_value_y))
-        ax.set_xlabel('y_pred')
-        ax.set_ylabel('y_test')
-        st.pyplot(fig)
+        fig = plot_test_pred(y_pred,y_test)
+        # st.pyplot(fig)
+        liste_fig.append(fig)
 
     cv_metrics = pd.DataFrame(liste_metrics)
 
     # return cv_R2, cv_RMSE, cv_MAE
-    return cv_metrics
+    return cv_metrics, liste_fig
