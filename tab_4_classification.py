@@ -28,7 +28,7 @@ def entrainer_modele(select_model: DecisionTreeClassifier, X_train, y_train, X_t
         print(clf.__dict__)
         return y_pred
     except Exception as e:
-        st.write(str(e)," :Il y a eu une erreur")
+        st.write(str(e)," : Il y a eu une erreur")
 
 def clf_report(y_pred, y_test):
     cr = classification_report(y_test, y_pred)
@@ -43,7 +43,7 @@ def val_croisee_clf(select_model: DecisionTreeClassifier,X, y, n_splits:int=4, *
         # à tester avec 1 autre metrics : 'f1', 'f1-weighted', etc. ?
         return score_clf
     except Exception as e:
-        st.write(str(e),":Il y a eu une erreur dans la validation croisée.")
+        st.write(str(e),": Il y a eu une erreur dans la validation croisée.")
 
 # X_train, X_test, y_train, y_test = regression.split(X, y, 0.25)
 
@@ -88,7 +88,7 @@ def etapes_clf(features,target):
             max_iter_defaut = 100
             C_user = float(st.text_input("Entrez une valeur de C (nombre décimal supérieur à 1 ) : ", C_defaut))
             max_iter = int(st.text_input("Entrez un nombre d'itérations maximum : ", max_iter_defaut))
-            model = SVC(random_state=rs, C=C_user, max_iter=max_iter)
+            model = SVC(C=C_user, max_iter=max_iter)
     
         elif select_model == "KNeighborsClassifier":
             n_neighbors_defaut = 5
