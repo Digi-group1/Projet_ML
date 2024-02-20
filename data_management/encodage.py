@@ -12,7 +12,7 @@ import streamlit as st
 # IMPORT DES FICHIERS PYTHON #
 ##############################
 
-import preparation_modele as pm
+from modeles import preparation_modele as pm
 
 
 
