@@ -127,7 +127,7 @@ def choix_traitement_nan(data) :
             valeurs, valeurs_nan, colonnes_avec_nan = nan_info.infos_valeurs_nan(data)
             col_sel_med = st.multiselect("Sélectionnez une ou plusieurs colonnes où on applique la médiane", colonnes_avec_nan)
             for colonne in col_sel_med :
-                if colonne in colonnes_categorielles : 
+                if colonne in colonnes_numeriques : 
                     mediane = data[colonne].mean()
                     data[colonne].fillna(mediane, inplace=True)
                 else : 

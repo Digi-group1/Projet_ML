@@ -1,8 +1,8 @@
 import pandas as pd
 from sklearn import preprocessing
 
-file = r'D:\POEC_Data_Analyst_Diginamic\Projet_ML\vin.csv' #à modifier selon chemin fichier
-data = pd.read_csv(file, sep=',')
+# file = r'D:\POEC_Data_Analyst_Diginamic\Projet_ML\vin.csv' #à modifier selon chemin fichier
+# data = pd.read_csv(file, sep=',')
 
 # Détection et identification d'une colonne Target
 def detect_target(data):
@@ -25,7 +25,7 @@ def detect_target(data):
 # print(test) #OK
 
 # Afficher le compteur et la fréquence de chaque valeur
-def stats(col: str): #prend le nom de la colonne à tester
+def stats(data,col: str): #prend le nom de la colonne à tester
     compt = data[col].value_counts()
     for val, compt in compt.items():
         freq = compt / len(data)
