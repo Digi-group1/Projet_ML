@@ -30,12 +30,15 @@ import tab_4
 ##########################
 # TITRE DE L'APPLICATION #
 ##########################
-st.title('Bienvenue sur votre application de Machine Learning')
+st.title('Bienvenue sur votre application de Machine Learning ')
+
+
 
 #################################################
 # MENU DE GAUCHE POUR CHOISIR / CHARGER UNE BDD #
 #################################################
 st.sidebar.title("Paramètres de l'application")
+st.sidebar.image("data/accueil.jpg")
 selected_database = st.sidebar.radio("Sélectionnez une base de données", ("Diabète", "Vins","Charger un fichier CSV"))
 donnees,base = chargement_data.charger(selected_database)
 st.sidebar.write("Vous avez choisi la base "+base)
@@ -70,7 +73,8 @@ with tabs_4:
 #### Page de l'onglet 5 -- Prédictions ###
 with tabs_5:
     st.subheader('Prédictions')
-    st.write('Ce module est en cours de développement. Sa mise en application sera prévue à la prochaine mise à jour.')
+    st.write('🚧 Ce module est en cours de développement. 🚧')
+    st.write("🚧 Sa mise en application sera prévue à la prochaine mise à jour. 🚧")
 
 
 
