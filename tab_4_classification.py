@@ -75,9 +75,9 @@ def etapes_clf(features,target):
             solver = 'liblinear'
             C_defaut = 1 #regularization strenght
             max_iter_defaut = 100
-            C = float(st.text_input("Entrez une valeur de C (nombre décimal supérieur à 1 ) : ", C_defaut))
+            C_user = float(st.text_input("Entrez une valeur de C (nombre décimal supérieur à 1 ) : ", C_defaut))
             max_iter = int(st.text_input("Entrez un nombre d'itérations maximum : ", max_iter_defaut))
-            model = DecisionTreeClassifier(random_state=rs, C=C, max_iter=max_iter, solver=solver)
+            model = DecisionTreeClassifier(random_state=rs, C=C_user, max_iter=max_iter, solver=solver)
 
         elif select_model == "RandomForestClassifier":
             n_estimator_dft = 20
@@ -88,9 +88,9 @@ def etapes_clf(features,target):
         elif select_model == "SVC":
             C_defaut = 1 #regularization strenght
             max_iter_defaut = 100
-            C = float(st.text_input("Entrez une valeur de C (nombre décimal supérieur à 1 ) : ", C_defaut))
+            C_user = float(st.text_input("Entrez une valeur de C (nombre décimal supérieur à 1 ) : ", C_defaut))
             max_iter = int(st.text_input("Entrez un nombre d'itérations maximum : ", max_iter_defaut))
-            model = SVC(random_state=rs, C=C, max_iter=max_iter)
+            model = SVC(random_state=rs, C=C_user, max_iter=max_iter)
     
         elif select_model == "KNeighborsClassifier":
             n_neighbors_defaut = 5
