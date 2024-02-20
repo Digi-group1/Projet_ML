@@ -19,7 +19,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold, cross_val_score
 
 # Entrainement du modèle 
-def entrainer_modele(select_model: DecisionTreeClassifier, **params):
+def entrainer_modele(select_model: DecisionTreeClassifier, X_train, y_train, X_test, **params):
     try:
         clf = select_model.set_params(**params)
         clf.fit(X_train, y_train) 
@@ -28,15 +28,14 @@ def entrainer_modele(select_model: DecisionTreeClassifier, **params):
         print(clf.__dict__)
         return y_pred
     except Exception as e:
-        print(f"{e} :Il y a eu une erreur")
+        st.write(str(e)," :Il y a eu une erreur")
 
-def clf_report(y_pred):
+def clf_report(y_pred, y_test):
     cr = classification_report(y_test, y_pred)
     return cr
 
 ## Validation croisée (avec StratifiedKFold)
-def val_croisee_clf(select_model: DecisionTreeClassifier, **params, n_splits:int =4, X, y):
-    n_splits = input("Entrez un nombre de lots pour la validation : ", n_splits)
+def val_croisee_clf(select_model: DecisionTreeClassifier,X, y, n_splits:int=4, **params):
     try:
         skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
         clf = select_model.set_params(**params)
@@ -44,9 +43,9 @@ def val_croisee_clf(select_model: DecisionTreeClassifier, **params, n_splits:int
         # à tester avec 1 autre metrics : 'f1', 'f1-weighted', etc. ?
         return score_clf
     except Exception as e:
-        print(f"{e} :Il y a eu une erreur dans la validation croisée.")
+        st.write(str(e),":Il y a eu une erreur dans la validation croisée.")
 
-X_train, X_test, y_train, y_test = regression.split(X, y, 0.25)
+# X_train, X_test, y_train, y_test = regression.split(X, y, 0.25)
 
 def etapes_clf(features,target):
 
@@ -64,11 +63,10 @@ def etapes_clf(features,target):
         message= "Vous avez choisi : "+select_model
         st.write(message)
 
-    """
-    2. TESTS et VALIDATION DU MODÈLE
-    """
-        n_splits = st.number_input(label="Entrez un nombre de lots : ", min_val=4, max_val=10, step=1)
-        n_splits_auto = 4
+        """
+        2. TESTS et VALIDATION DU MODÈLE
+        """
+        n_splits = st.number_input(label="Entrez un nombre de lots : ", min_value=4, max_value=10, step=1)
         
         if select_model == "LogisticRegression":
             rs = 42
@@ -77,7 +75,7 @@ def etapes_clf(features,target):
             max_iter_defaut = 100
             C_user = float(st.text_input("Entrez une valeur de C (nombre décimal supérieur à 1 ) : ", C_defaut))
             max_iter = int(st.text_input("Entrez un nombre d'itérations maximum : ", max_iter_defaut))
-            model = DecisionTreeClassifier(random_state=rs, C=C_user, max_iter=max_iter, solver=solver)
+            model = LogisticRegression(random_state=rs, C=C_user, max_iter=max_iter, solver=solver)
 
         elif select_model == "RandomForestClassifier":
             n_estimator_dft = 20
@@ -102,8 +100,8 @@ def etapes_clf(features,target):
             rs = 42
             model = DecisionTreeClassifier(random_state=rs, class_weight=cls_weight)
 
-        data_pred = entrainer_modele(select_model)
-        report = val_croisee_clf(select_model, n_splits, X, y)
+        # data_pred = entrainer_modele(select_model, X_train, y_train, X_test)
+        report = val_croisee_clf(select_model, features, target, n_splits)
         
         # Affichage des scores de validation croisée
         st.write("Rapport de validation croisée sur les", str(n_splits),"lots :")
@@ -112,7 +110,7 @@ def etapes_clf(features,target):
     """
     3. GRID SEARCH
     """
-    n_splits = st.number_input(label="Entrez un nombre de lots pour la validation croisée : ", min_val=4, max_val=8, step=1)
+    n_splits = st.number_input(label="Entrez un nombre de lots pour la validation croisée : ", min_value=4, max_value=8, step=1)
     scoring = 'accuracy'
 
     with st.expander("**Comparaison des modèles de classification :**", expanded=False):
@@ -122,7 +120,7 @@ def etapes_clf(features,target):
             ('LogReg', LogisticRegression()),
             ('DecisTreeClf', DecisionTreeClassifier()),
             ('RandomForestClf', RandomForestClassifier()),
-            ('KNC', KNeighborsClassifier())
+            ('KNC', KNeighborsClassifier()),
             ('SVC', SVC())
         ]
 
