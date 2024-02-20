@@ -16,10 +16,10 @@ import matplotlib.pyplot as plt
 ##############################
  
 from data_management import chargement_data
-import tab_1
-import tab_2
-import tab_3
-import tab_4
+from architecture import tab_1
+from architecture import tab_2
+from architecture import tab_3
+from architecture import tab_4
 
 
 
