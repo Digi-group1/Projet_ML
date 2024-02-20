@@ -116,9 +116,11 @@ def validation_croisee(model,n_splits,features,target):
     # cv_metrics = pd.DataFrame(columns=['R2', 'RMSE', 'MAE'])
     cv_metrics = pd.DataFrame(columns=['R2', 'RMSE', 'MAE','taille éch. train', 'taille éch. test'])
 
-    # Listes pour remplir le dataframe cv_metrics et pour enregistrer toutes les figures
+    # Liste pour remplir le dataframe cv_metrics
     liste_metrics = list()
-    liste_fig = list()
+    # Listes pour enregistrer toutes les figures et tous les modèles
+    list_fig = list()
+    list_models = list()
     
     # Boucle sur les "n_splits" plis de la validation croisée :
     for train_index, test_index in kf.split(features):
@@ -141,9 +143,12 @@ def validation_croisee(model,n_splits,features,target):
         # Plots :
         fig = plot_test_pred(y_pred,y_test)
         # st.pyplot(fig)
-        liste_fig.append(fig)
+        list_fig.append(fig)
+
+        # Enregistrement du modèle entrainé :
+        list_models.append(model)
 
     cv_metrics = pd.DataFrame(liste_metrics)
 
     # return cv_R2, cv_RMSE, cv_MAE
-    return cv_metrics, liste_fig
+    return cv_metrics, list_fig, list_models

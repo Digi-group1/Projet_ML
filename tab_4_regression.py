@@ -72,11 +72,11 @@ def etapes(features,target):
 
         # Appel de la focntion validation croisée, retourne un dataframe avec les 3 metrics R2, RMSE, MAE:
         # 'R2','RMSE','MAE','train_sample_size','test_sample_size'
-        cv_metrics, liste_fig = regression.validation_croisee(model,n_splits,features,target)
+        cv_metrics, list_fig, list_models = regression.validation_croisee(model,n_splits,features,target)
         st.write(cv_metrics)
 
         # Plots
-        for fig in liste_fig:
+        for fig in list_fig:
             st.pyplot(fig)
 
         # Métriques moyennes
@@ -90,61 +90,36 @@ def etapes(features,target):
 
 
         """
-        c. ENREGISTREMENT DU MODÈLE (NOUVEL ENTRAINEMENT)
+        c. ENREGISTREMENT DU MODÈLE (SÉLECTION PARMI LES LOTS DE LA x VALIDATION
         """
 
-        st.header("Sauvegarde du modèle")
-        select_svg_model = st.radio("--> Réentrainer le modèle sur le jeu de données et le sauvegarder ?", ("Non","Oui"))
+        st.subheader("Sauvegarde du modèle")
+        select_svg_model = st.radio("--> Souhaitez-vous sauvegarder le modèle ?", ("Non","Oui"))
 
         if select_svg_model == "Non":
             st.write("--> Pas de modèle sauvegardé.")
             model_svg = "" # car la fonction retourne forcément un modèle
 
-        else:
-         
-            # Nouveau split train/test du jeu de données :
-            X_train, X_test, y_train, y_test = regression.split(features,target,n_splits)
-
-            # Reprend le modèle sélectionné et l'entraîne sur un nouvel échantillon de train :
-            if model_selection == "Ridge":
-                model = regression.ridge_instant(alpha, max_iter, tol)
-
-            elif model_selection == "Lasso":
-                model = regression.lasso_instant(alpha, max_iter, tol)
-
-            else:
-                model = regression.linear_instant()
-            
-            # Entraînement du modèle :
-            model.fit(X_train, y_train)
-
-            # Prédiction du modèle sur X_test :
-            y_pred = model.predict(X_test)
-
-            # Trace le plot y_pred y_test
-            fig = regression.plot_test_pred(y_test,y_pred)
-            st.pyplot(fig)
-            
-            # Évaluation du modèle sur les données de test :
-            R2, RMSE, MAE = regression.metrics(y_test,y_pred)
-            st.write("- Coefficient de détermination : R² = ", str(R2))
-            st.write("- Racine carrée de l'erreur quadratique moyenne : RMSE = ",str(RMSE))
-            st.write("- Erreur absolue moyenne : MAE = ",str(MAE))
+        else:         
+            list_index_models = list(range(0,n_splits))
+            index_model = int(st.radio(label="Entrez l'indice du modèle que vous souhaitez enregistrer : ",options=list_index_models))
+            model_svg = list_models[index_model]
 
             if model_selection == "LinearRegression (par défaut)":
-                st.write("--> Modèle LinearRegression sauvegardé pour réaliser des prédictions.")
+                st.write("--> Modèle LinearRegression entraînement n°",index_model,"sauvegardé pour réaliser des prédictions.")
             else:
-                st.write("--> Modèle",model_selection," (alpha :",str(alpha)," ; max_iter :",str(max_iter)," ; tol :",str(tol),") sauvegardé pour réaliser des prédictions.")
-
-            model_svg = model
-
+                st.write("--> Modèle",model_selection," (alpha :",str(alpha)," ; max_iter :",str(max_iter)," ; tol :",str(tol),"), entraînement n°",index_model, "sauvegardé pour réaliser des prédictions.")
 
         
     """
-    3. GRID SEARCH
+    3. COMPARAISON DES MODÈLES
     """
 
-    with st.expander("**Évaluation des trois modèles de régression (1) :**", expanded=False):
+    with st.expander("**Comparaison des trois modèles de régression (méthode manuelle) :**", expanded=False):
+        
+        """
+        a. GRID SEARCH
+        """
 
         # iteration
         n_splits = 5
@@ -177,8 +152,8 @@ def etapes(features,target):
 
         for iteration in structure:
 
-            info = str(iteration)
-            # st.write(info)
+            info = "-"+str(iteration)+": ok"
+            st.write(info)
             
             model = structure[iteration]['model']
             parameters = structure[iteration]['hyperparameters']
@@ -189,37 +164,64 @@ def etapes(features,target):
             for possible in possibility:
 
                 i += 1
-                # st.write(possible)
+                # st.write(i)
                 
-                try:
-                    
+                try:                    
                     model.set_params(**possible)
+                    # st.write(model.get_params(deep=True))
 
                     # Appel de la focntion validation croisée, retourne un dataframe avec les 3 metrics R2, RMSE, MAE:
                     # 'R2','RMSE','MAE','train_sample_size','test_sample_size'
-                    cv_metrics, liste_fig = regression.validation_croisee(model,n_splits,features,target)
-                    # st.write(cv_metrics)
+                    cv_metrics_GS, liste_fig, list_models = regression.validation_croisee(model,n_splits,features,target)
 
                     # Métriques moyennes
                     cv_R2_moy, cv_RMSE_moy, cv_MAE_moy = regression.metrics_moy(cv_metrics,n_splits)
 
-                    # st.write("Pour", possible, ":")
-                    # st.write("- Coefficient de détermination : R² = ", str(R2))
-                    # st.write("- Racine carrée de l'erreur quadratique moyenne : RMSE = ",str(RMSE))
-                    # st.write("- Erreur absolue moyenne : MAE = ",str(MAE))
-
                     results_GS[i] = [possible,model,cv_R2_moy, cv_RMSE_moy, cv_MAE_moy]
 
                 except:
-                    st.write("Les hyperparamètres ne sont pas initialisable entre eux pour",possible)
+                    st.write(i, "Les hyperparamètres ne sont pas initialisables entre eux.")
            
+        st.write("Nombre de modèles testés : ",len(results_GS))
+
+        """
+        b. SÉLECTION DU MEILLEUR MODÈLE
+        """
+
+        st.subheader("Sélection du meilleur modèle")
+
+        # results_GS_df = pd.DataFrame(results_GS)
+        results_GS_df = pd.DataFrame.from_dict(results_GS, orient='index')
+        results_GS_df = results_GS_df.rename(columns={0:'param',1:'model',2:'R2',3:'RMSE',4:'MAE'})
+        st.write(results_GS_df)
+
+        st.write("Meilleur modèle (R² le plus élevé) : ")
+        ligne_max_R2 = results_GS_df.loc[results_GS_df['R2'].idxmax()]
+        st.write(ligne_max_R2)
         
-        st.write(results_GS)
+        
+        """
+        c. ENREGISTREMENT DU MEILLEUR MODÈLE
+        """
+
+        st.subheader("Sauvegarde du modèle")
+        select_svg_model = st.radio("--> Souhaitez-vous sauvegarder le modèle ?", ("Non","Oui"),key="34")
+
+        if select_svg_model == "Non":
+            st.write("--> Pas de modèle sauvegardé.")
+            model_svg = "" # car la fonction retourne forcément un modèle
+
+        else:         
+            index_model = ligne_max_R2.name
+            model_svg = ligne_max_R2['model']
+
+            if model_selection == "LinearRegression (par défaut)":
+                st.write("--> Modèle LinearRegression entraînement n°",index_model,"sauvegardé pour réaliser des prédictions.")
+            else:
+                st.write("--> Modèle",model_selection," (alpha :",str(alpha)," ; max_iter :",str(max_iter)," ; tol :",str(tol),"), entraînement n°",index_model, "sauvegardé pour réaliser des prédictions.")
 
 
-
-
-    with st.expander("**Évaluation des trois modèles de régression (2) :**", expanded=False):
+    with st.expander("**Comparaison des trois modèles de régression (méthode GridSearchCV) :**", expanded=False):
 
 
         n_splits = st.number_input(label="Entrez un nombre de lots pour la validation croisée : ", min_value=5, max_value=10, step=1)
@@ -264,4 +266,4 @@ def etapes(features,target):
 
 
     # sorties de fonction tab_4 :
-    return (model_svg)
+    return model_svg
